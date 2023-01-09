@@ -24,8 +24,11 @@ def routine(db):
                     cpt_deleted_rows += 1
 
                 db.session.commit()
+
         print(
-            f"{get_current_date()['date']} - Supervisor routine was successfully executed ({cpt_deleted_rows} rows deleted)")
+            f"\r{get_current_date()['date']} - Supervisor routine was successfully executed ({cpt_deleted_rows} rows deleted)",
+            end='')
+
 
     except KeyError as err:
         print(f"ERROR - history_size_supervisor_routine: {err}")
