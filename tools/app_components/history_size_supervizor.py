@@ -8,6 +8,7 @@ from tools.utilities import get_current_date
 def routine(db):
     try:
         all_topics = db.session.query(Topics).filter(getattr(Topics, "id") >= 0).all()
+        cpt_deleted_rows = 0
 
         for topic in all_topics:
             history_size = topic.history_size
@@ -20,9 +21,11 @@ def routine(db):
                 # remove excess rows
                 for excess_row in topic_values[history_size:]:
                     db.session.delete(excess_row)
+                    cpt_deleted_rows += 1
 
                 db.session.commit()
-        print(f"{get_current_date()['date']} - Supervisor routine was successfully executed")
+        print(
+            f"{get_current_date()['date']} - Supervisor routine was successfully executed ({cpt_deleted_rows} rows deleted)")
 
     except KeyError as err:
         print(f"ERROR - history_size_supervisor_routine: {err}")
