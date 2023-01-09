@@ -14,7 +14,7 @@ if __name__ == '__main__':
             app.run(host='0.0.0.0', port=APP_CONFIG.GLOBAL["listen_port"], debug=True)
 
         elif APP_CONFIG.SERVER_MODE == "cherrypy_server":
-            server = WSGIServer(('0.0.0.0', 5000), PathInfoDispatcher({'/': app}))
+            server = WSGIServer(('0.0.0.0', APP_CONFIG.GLOBAL["listen_port"]), PathInfoDispatcher({'/': app}))
             try:
                 server.start()
             except KeyboardInterrupt:

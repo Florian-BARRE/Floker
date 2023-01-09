@@ -63,6 +63,7 @@ def read_topic():
     topic = request.args.get('topic')
     topic = topic.replace("$", "/")
     parse_arg = request.args.get('parse')
+    previous_state_index = request.args.get('previous_state_index')
 
     if topic is None:
         return jsonify(status="Error topic parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
@@ -77,20 +78,22 @@ def read_topic():
             history_topic_result = db.session.query(History).filter(
                 getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).all()
 
-            # Just keep the state value of the row
-            # for index in range(len(history_topic_result)):
-            #    history_topic_result[index] = history_topic_result[index].state
-            state = history_topic_result[0].state
+            # Take the state, last state or state index which was asked
+            if previous_state_index is None:
+                state = history_topic_result[0].state
+
+            elif int(previous_state_index) > len(history_topic_result):
+                state = history_topic_result[-1].state
+            else:
+                state = history_topic_result[int(previous_state_index)].state
             if state is None:
                 state = "null"
 
-        # If doesn t exist
         elif len(general_topic_result) == 0:
             # Add the new topic
             add_topic(db.session, topic)
             state = "null"
 
-        # If there is to many topics create an error
         else:
             print(f"To many {topic}, what is the matter ?")
 
@@ -149,4 +152,3 @@ def delete_topic():
     except KeyError as err:
         print(f"ERROR - read_topic: {err}")
         return jsonify(status="topic's reader doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
-

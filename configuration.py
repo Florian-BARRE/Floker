@@ -17,14 +17,9 @@ except FileNotFoundError:
 
 
 class Config:
+    # General
     APPLICATION_NAME = 'Floker'
     BASE_DIR = BASE_DIR
-    SERVER_MODE = "cherrypy_server"  # debug_server | WSGI_server
-    DEBUG = 1
-    PRIORITY_DEBUG_LEVEL = 100
-    MULTI_THREADING = True
-    FLOKER_CONN_STR = SECRET_CONFIG_STORE["floker_conn_str"]
-    TOKEN = SECRET_CONFIG_STORE["token"]
     GLOBAL = {
         "listen_port": 5000,
         "API_root": "/floker/api/",
@@ -38,9 +33,19 @@ class Config:
         "crash": 500
     }
 
+    # Run Mode
+    SERVER_MODE = "cherrypy_server"  # debug_server | cherrypy_server
+    DATABASE_MODE = SECRET_CONFIG_STORE["database_mode"]
+    TOKEN = SECRET_CONFIG_STORE["token"]
+
+    if DATABASE_MODE == "local":
+        FLOKER_CONN_STR = f'sqlite:///{os.path.join(BASE_DIR, "databases", "floker.db")}'
+    else:
+        FLOKER_CONN_STR = SECRET_CONFIG_STORE["floker_conn_str"]
+
 
 class Configuration(dict):
-
+    
     def from_object(self, obj):
         for attr in dir(obj):
 
