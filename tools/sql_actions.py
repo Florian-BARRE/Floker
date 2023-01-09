@@ -3,7 +3,8 @@ from tools.sql.table import Topics, History
 from tools.utilities import get_current_date
 
 
-def add_topic(session, topic, default_value=None) -> bool:
+def add_topic(session, topic, default_value=None,
+              default_history_size=APP_CONFIG.GLOBAL["default_history_size"]) -> bool:
     success = False
     try:
         date = get_current_date()
@@ -11,7 +12,7 @@ def add_topic(session, topic, default_value=None) -> bool:
         session.add(
             Topics(
                 topic=topic,
-                history_size=APP_CONFIG.GLOBAL["default_history_size"]
+                history_size=default_history_size
             )
         )
         # Add a row concern the topic in the history

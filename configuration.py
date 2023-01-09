@@ -45,7 +45,7 @@ class Config:
 
 
 class Configuration(dict):
-    
+
     def from_object(self, obj):
         for attr in dir(obj):
 

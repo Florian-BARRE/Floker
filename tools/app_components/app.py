@@ -104,8 +104,8 @@ def read_topic():
 
         if parse_arg is not None:
             return \
-            jsonify(status="topic's reader works successfully", state=state, history_size=str(history_size)).json[
-                parse_arg], APP_CONFIG.CODE_ERROR["successfully_request"]
+                jsonify(status="topic's reader works successfully", state=state, history_size=str(history_size)).json[
+                    parse_arg], APP_CONFIG.CODE_ERROR["successfully_request"]
         else:
             return jsonify(status="topic's reader works successfully", state=state, history_size=history_size), \
                    APP_CONFIG.CODE_ERROR[
