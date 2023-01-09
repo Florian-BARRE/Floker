@@ -22,9 +22,10 @@ def routine(db):
                     db.session.delete(excess_row)
 
                 db.session.commit()
+        print(f"{get_current_date()['date']} - Supervisor routine was successfully executed")
 
     except KeyError as err:
-        print(f"ERROR - start_history_size_supervisor: {err}")
+        print(f"ERROR - history_size_supervisor_routine: {err}")
 
 
 def start_history_size_supervisor(app, db):
