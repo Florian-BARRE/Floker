@@ -26,7 +26,7 @@ def routine(db):
                 db.session.commit()
 
         print(
-            f"\r{get_current_date()['date']} - Supervisor routine was successfully executed ({cpt_deleted_rows} rows deleted)",
+            f"\r{get_current_date()['date']} - Supervisor routine was successfully executed ({cpt_deleted_rows} rows deleted){' '*5}",
             end='')
 
 
