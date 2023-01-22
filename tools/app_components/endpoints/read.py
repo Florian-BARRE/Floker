@@ -5,6 +5,8 @@ from tools.sql import db, app
 from tools.sql.table import Topics, History
 from tools.sql_actions import add_topic
 
+from tools.utilities import get_current_date
+
 
 @app.route('/api/read', methods=['GET'])
 def read_topic():
@@ -35,19 +37,27 @@ def read_topic():
             # Take the state, last state or state index which was asked
             if previous_state_index is None:
                 state = history_topic_result[0].state
+                timestamp = history_topic_result[0].timestamp
+                date = history_topic_result[0].date
 
-            elif int(previous_state_index) > len(history_topic_result):
+            elif int(previous_state_index) >= len(history_topic_result):
                 state = history_topic_result[-1].state
+                timestamp = history_topic_result[-1].timestamp
+                date = history_topic_result[-1].date
+
             else:
                 state = history_topic_result[int(previous_state_index)].state
+                timestamp = history_topic_result[int(previous_state_index)].timestamp
+                date = history_topic_result[int(previous_state_index)].date
             if state is None:
                 state = "null"
-
 
         elif len(general_topic_result) == 0:
             # Add the new topic
             add_topic(db.session, topic)
             state = "null"
+            timestamp = get_current_date()["date_timespamp"]
+            date = get_current_date()["date"]
             history_size = APP_CONFIG.GLOBAL["default_history_size"]
 
         else:
@@ -55,10 +65,12 @@ def read_topic():
 
         if parse_arg is not None:
             return \
-                jsonify(status="topic's reader works successfully", state=state, history_size=str(history_size)).json[
+                jsonify(status="topic's reader works successfully", state=state, timestamp=timestamp, date=date,
+                        history_size=str(history_size)).json[
                     parse_arg], APP_CONFIG.CODE_ERROR["successfully_request"]
         else:
-            return jsonify(status="topic's reader works successfully", state=state, history_size=history_size), \
+            return jsonify(status="topic's reader works successfully", state=state, timestamp=timestamp, date=date,
+                           history_size=history_size), \
                    APP_CONFIG.CODE_ERROR[
                        "successfully_request"]
 
