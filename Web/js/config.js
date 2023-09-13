@@ -6,7 +6,7 @@ const HISTORY_TABLE = "history"
 const TOPICS_VIEWER_URL = BASE_URL + TOPICS_TABLE
 const HISTORY_VIEWER_URL = BASE_URL + HISTORY_TABLE
 
-const REFRESH_WAIT = 500;
+const REFRESH_WAIT = 5000;
 const DATA_TABLE_ID = "main_table";
 const GENERAL_INFO_TABLE_ID = "general_info_table";
 
