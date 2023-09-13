@@ -21,7 +21,7 @@ def write_topic():
 
     topic = topic.replace("$", "/")
 
-    write_task(topic, state)
+    return write_task(topic, state)
 
 
 def write_task(topic, state):

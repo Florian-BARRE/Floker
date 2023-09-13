@@ -47,7 +47,7 @@ def multi_task():
             # Write
             elif type.lower() == "write":
                 topic = json_request.get("topic", None)
-                state = json_request.get("state", None)
+                state = json_request.get("state", "null")
 
                 if topic is None:
                     return jsonify(status=f"Under request number '{index}' of type 'WRITE': no topic presence."), \
