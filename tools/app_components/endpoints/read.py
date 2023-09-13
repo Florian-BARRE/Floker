@@ -8,7 +8,7 @@ from tools.sql_actions import add_topic
 from tools.utilities import get_current_date
 
 
-@app.route('/api/read', methods=['GET'])
+@app.route(APP_CONFIG.GLOBAL["API_root"] + 'read', methods=['GET'])
 def read_topic():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]
@@ -20,7 +20,10 @@ def read_topic():
         return jsonify(status="Error topic parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 
     topic = topic.replace("$", "/")
+    return read_task(topic, parse_arg=parse_arg, previous_state_index=previous_state_index)
 
+
+def read_task(topic, parse_arg=None, previous_state_index=None):
     try:
         # Check is the topic exist in the general topics table
         general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()

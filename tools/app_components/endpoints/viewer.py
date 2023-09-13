@@ -7,7 +7,7 @@ from tools.sql_actions import add_topic
 from tools.utilities import get_current_date
 
 
-@app.route('/api/viewer', methods=['GET'])
+@app.route(APP_CONFIG.GLOBAL["API_root"] + 'viewer', methods=['GET'])
 def table_viewer():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]
@@ -56,7 +56,7 @@ def table_viewer():
 
     except KeyError as err:
         print(f"ERROR - read_topic: {err}")
-        return jsonify(status="topic's reader doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
+        return jsonify(status="topic's viewer doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
 
 
 def extract_history_table_from_topic(topic, history_size):

@@ -5,7 +5,7 @@ from tools.sql import db, app
 from tools.sql.table import Topics, History
 
 
-@app.route('/api/delete', methods=['GET'])
+@app.route(APP_CONFIG.GLOBAL["API_root"] + 'delete', methods=['GET'])
 def delete_topic():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]

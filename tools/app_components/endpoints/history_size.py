@@ -6,7 +6,7 @@ from tools.sql.table import Topics
 from tools.sql_actions import add_topic
 
 
-@app.route('/api/history_size', methods=['GET'])
+@app.route(APP_CONFIG.GLOBAL["API_root"] + 'history_size', methods=['GET'])
 def change_history_size():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]

@@ -8,11 +8,10 @@ from tools.sql_actions import add_topic
 from tools.utilities import get_current_date
 
 
-@app.route('/api/write', methods=['GET'])
+@app.route(APP_CONFIG.GLOBAL["API_root"] + 'write', methods=['GET'])
 def write_topic():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]
-    msg = "topic's writer doesn't work, an error occured"
 
     topic = request.args.get('topic')
     state = request.args.get('state')
@@ -21,6 +20,12 @@ def write_topic():
         return jsonify(status="Error topic parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 
     topic = topic.replace("$", "/")
+
+    write_task(topic, state)
+
+
+def write_task(topic, state):
+    msg = "topic's writer doesn't work, an error occured"
 
     try:
         # Check is the topic exist in the general topics table

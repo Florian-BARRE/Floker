@@ -22,7 +22,7 @@ class Config:
     BASE_DIR = BASE_DIR
     GLOBAL = {
         "listen_port": 5000,
-        "API_root": "/floker/api/",
+        "API_root": "/api/",
         "default_history_size": 50,
         "supervisor_routine_wait": 10
     }
