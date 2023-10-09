@@ -16,8 +16,25 @@ def table_viewer():
 
     table = request.args.get('table')
     topic = request.args.get('topic')
-    history_size = request.args.get('history_size')
+    start_history_capture = request.args.get('start_history_capture')
+    end_history_capture = request.args.get('end_history_capture')
     parse_arg = request.args.get('parse')
+
+    # Try parse history capture point
+    if start_history_capture is not None:
+        try:
+            start_history_capture = int(start_history_capture)
+        except KeyError as err:
+            print(f"ERROR - parse start_history_capture: {err}")
+            return jsonify(status="topic's viewer doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
+
+    if end_history_capture is not None:
+        try:
+            end_history_capture = int(end_history_capture)
+        except KeyError as err:
+            print(f"ERROR - parse end_history_capture: {err}")
+            return jsonify(status="topic's viewer doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
+
 
     if table is None:
         return jsonify(status="Error table parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
@@ -30,7 +47,10 @@ def table_viewer():
         if table.lower() == "history":
             if topic is not None:
                 topic = topic.replace("$", "/")
-                extraction = extract_history_table_from_topic(topic, history_size)
+                extraction = extract_history_table_from_topic(
+                    topic,
+                    start_history_capture, end_history_capture
+                )
             else:
                 extraction = extract_history_table()
 
@@ -55,28 +75,37 @@ def table_viewer():
             return final_json, APP_CONFIG.CODE_ERROR["successfully_request"]
 
     except KeyError as err:
-        print(f"ERROR - read_topic: {err}")
+        print(f"ERROR - table_viewer: {err}")
         return jsonify(status="topic's viewer doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
 
 
-def extract_history_table_from_topic(topic, history_size):
+def extract_history_table_from_topic(topic, start, end):
     # Check is the topic exist in the general topics table
     general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
 
     # If it exists
     if len(general_topic_result) == 1:
-        history_topic_results = db.session.query(History).filter(
-            getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).all()
+        # 2 cases:
+        # from 0 to end_history_capture
+        # from start_history_capture to end_history_capture
 
-        if history_size is not None and history_size >= 0:
-            return history_topic_results[:history_size]
+        # from 0 to end_history_capture
+        if start is None and end is not None:
+            return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
+                getattr(History, "timestamp").desc()).limit(end).all()
+        # from start_history_capture to end_history_capture
+        elif start is not None and end is not None:
+            return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
+                getattr(History, "timestamp").desc()).offset(start).limit(end).all()
 
-        return history_topic_results
+        else:
+            return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
+                getattr(History, "timestamp").desc()).all()
 
     elif len(general_topic_result) == 0:
         # Add the new topic
         add_topic(db.session, topic)
-        return extract_history_table_from_topic(topic, history_size)
+        return extract_history_table_from_topic(topic, start, end)
 
     else:
         print(f"To many {topic}, what is the matter ?")

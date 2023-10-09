@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
         elif APP_CONFIG.SERVER_MODE == "cherrypy_server":
             server = WSGIServer(('0.0.0.0', APP_CONFIG.GLOBAL["listen_port"]), PathInfoDispatcher({'/': app}))
-            server.maxthreads = -1
+            server.maxthreads = -1 # No max thread
             try:
                 server.start()
             except KeyboardInterrupt:
