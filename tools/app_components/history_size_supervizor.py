@@ -41,5 +41,3 @@ def start_history_size_supervisor(app, db):
             if (get_current_date()["date_timespamp"] - last_routine) > APP_CONFIG.GLOBAL["supervisor_routine_wait"]:
                 last_routine = get_current_date()["date_timespamp"]
                 routine(db)
-            else:
-                sleep(5)
