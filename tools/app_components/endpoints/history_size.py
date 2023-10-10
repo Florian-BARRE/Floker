@@ -5,8 +5,10 @@ from tools.sql import db, app
 from tools.sql.table import Topics
 from tools.sql_actions import add_topic
 
+from tools.utilities import increment_threads_count
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'history_size', methods=['GET'])
+@increment_threads_count
 def change_history_size():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]

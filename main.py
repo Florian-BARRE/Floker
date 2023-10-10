@@ -2,12 +2,12 @@ from threading import Thread
 from cheroot.wsgi import Server as WSGIServer, PathInfoDispatcher
 
 
-from tools.app_components.history_size_supervizor import start_history_size_supervisor
+from tools.app_components.supervizor import supervisor
 from tools.sql import app, db
 from configuration import APP_CONFIG
 
 if __name__ == '__main__':
-    Thread(target=start_history_size_supervisor, args=(app, db)).start()
+    Thread(target=supervisor, args=(app, db)).start()
 
     with app.app_context():
         if APP_CONFIG.SERVER_MODE == "debug_server":
@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
         elif APP_CONFIG.SERVER_MODE == "cherrypy_server":
             server = WSGIServer(('0.0.0.0', APP_CONFIG.GLOBAL["listen_port"]), PathInfoDispatcher({'/': app}))
-            server.maxthreads = -1 # No max thread
+            server.maxthreads = -1  # No max thread
             try:
                 server.start()
             except KeyboardInterrupt:

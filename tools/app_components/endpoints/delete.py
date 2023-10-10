@@ -4,8 +4,10 @@ from configuration import APP_CONFIG
 from tools.sql import db, app
 from tools.sql.table import Topics, History
 
+from tools.utilities import increment_threads_count
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'delete', methods=['GET'])
+@increment_threads_count
 def delete_topic():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]

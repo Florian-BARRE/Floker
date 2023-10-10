@@ -4,10 +4,11 @@ from configuration import APP_CONFIG
 from tools.sql import db, app
 from tools.sql.table import Topics, History
 from tools.sql_actions import add_topic
-from tools.utilities import get_current_date
+from tools.utilities import get_current_date, increment_threads_count
 
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'viewer', methods=['GET'])
+@increment_threads_count
 def table_viewer():
     if APP_CONFIG.TOKEN != request.args.get('token'):
         return jsonify(status="Error auth", state=None), APP_CONFIG.CODE_ERROR["unauthorize"]
