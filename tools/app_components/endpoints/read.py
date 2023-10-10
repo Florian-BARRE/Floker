@@ -5,6 +5,7 @@ from tools.sql import db, app
 from tools.sql.table import Topics, History
 from tools.sql_actions import add_topic
 
+from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import get_current_date, increment_threads_count
 
 
@@ -26,17 +27,16 @@ def read_topic():
 
 def read_task(topic, parse_arg=None, previous_state_index=None):
     try:
-        # Check is the topic exist in the general topics table
-        general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+        topic_check_result = check_topic_existence(db.session, topic)
 
         # If it exists
-        if len(general_topic_result) == 1:
+        if topic_check_result[0] == 1:
             # Check in history the topic's state
             history_topic_result = db.session.query(History).filter(
                 getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).all()
 
             # Get topic's history size in general topics
-            history_size = general_topic_result[0].history_size
+            history_size = topic_check_result[1]
 
             # Take the state, last state or state index which was asked
             if previous_state_index is None:
@@ -56,9 +56,7 @@ def read_task(topic, parse_arg=None, previous_state_index=None):
             if state is None:
                 state = "null"
 
-        elif len(general_topic_result) == 0:
-            # Add the new topic
-            add_topic(db.session, topic)
+        elif topic_check_result[0] == 0:
             state = "null"
             timestamp = get_current_date()["date_timespamp"]
             date = get_current_date()["date"]
