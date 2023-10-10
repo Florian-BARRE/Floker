@@ -26,7 +26,8 @@ class Config:
         "default_history_size": 50,
         "supervisor_routine_wait": 5,
         "current_period_threads_opened": 0,
-        "current_total_execution_duration_of_threads": 0
+        "current_total_execution_duration_of_threads": 0,
+        "topics_cash": {}
     }
     CODE_ERROR = {
         "successfully_request": 200,
@@ -37,6 +38,7 @@ class Config:
 
     # Run Mode
     SERVER_MODE = "cherrypy_server"  # debug_server | cherrypy_server
+    ENABLE_TOPICS_CASH = True  # True | False
     DATABASE_MODE = SECRET_CONFIG_STORE["database_mode"]
     TOKEN = SECRET_CONFIG_STORE["token"]
 
