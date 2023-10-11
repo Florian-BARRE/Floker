@@ -2,8 +2,7 @@ from flask import jsonify, request
 
 from configuration import APP_CONFIG
 from tools.sql import db, app
-from tools.sql.table import Topics, History
-from tools.sql_actions import add_topic
+from tools.sql.table import History
 
 from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import get_current_date, increment_threads_count

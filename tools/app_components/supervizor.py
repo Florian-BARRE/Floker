@@ -16,15 +16,15 @@ def history_size_regulator_routine(db):
             items_to_delete = db.session.query(History.id).filter(
                 getattr(History, "topic") == topic.topic).order_by(getattr(History, "timestamp").desc()).offset(
                 topic.history_size).subquery()
+            cpt_deleted_rows += db.session.query(items_to_delete).count()
             db.session.query(History).filter(History.id.in_(select(items_to_delete))).delete(
                 synchronize_session='fetch')
-            cpt_deleted_rows = db.session.query(items_to_delete).count()
 
             db.session.commit()
 
         return (
             f"#-> {get_current_date()['date']} - History size regulator routine was successfully executed.",
-            f"#--> OUTPUT: \033[92m{cpt_deleted_rows}\033[0m rows deleted.",
+            f"#--> OUTPUT: \033[92m{cpt_deleted_rows} rows deleted.\033[0m",
             ""
         )
 
@@ -39,8 +39,8 @@ def threads_counter_routine(last_call, count):
         last_call_delta = get_current_date()["date_timespamp"] - last_call
         return (
             f"#-> {get_current_date()['date']} - Threads counter supervisor routine was successfully executed.",
-            f"#--> OUTPUT: \033[92m{count}\033[0m"
-            f" were completed in \033[92m{last_call_delta}\033[0m.",
+            f"#--> OUTPUT: \033[92m{count}"
+            f" were completed in {last_call_delta}s.\033[0m",
             ""
         )
 
@@ -54,8 +54,8 @@ def threads_timer_routine(duration, count):
         average = duration / count if count != 0 and count is not None else 0
         return (
             f"#-> {get_current_date()['date']} - Threads timer supervisor routine was successfully executed.",
-            f"#--> OUTPUT: total work duration \033[92m{duration}\033[0m,"
-            f" the average thread duration is \033[92m{average}\033[0m).",
+            f"#--> OUTPUT: \033[92mtotal work duration {duration}s,"
+            f" the average thread duration is {average}.\033[0m",
             ""
         )
 
@@ -63,17 +63,54 @@ def threads_timer_routine(duration, count):
         return f"ERROR - threads_timer_routine: {err}"
 
 
+def requests_counter_routine(last_call):
+    try:
+        last_call_delta = get_current_date()["date_timespamp"] - last_call
+        nb_requests = APP_CONFIG.GLOBAL['requests_counter']
+        APP_CONFIG.GLOBAL['requests_counter'] = 0
+        return (
+            f"#-> {get_current_date()['date']} - Requests counter routine was successfully executed.",
+            f"#--> OUTPUT: \033[92mthere were {nb_requests} requests running in the last {last_call_delta}s.\033[0m",
+            ""
+        )
+
+    except KeyError as err:
+        return f"ERROR - requests_counter_routine: {err}"
+
+def requests_exceeded_routine():
+    try:
+        return (
+            f"#-> {get_current_date()['date']} - Requests exeeded routine was successfully executed.",
+            f"#--> OUTPUT: \033[92mthere were actually {APP_CONFIG.GLOBAL['dynamic_requests_counter']}"
+            f" requests which are in queue.\033[0m",
+            ""
+        )
+
+    except KeyError as err:
+        return f"ERROR - requests_exceeded_routine: {err}"
+
 def threads_available_routine():
     try:
         return (
             f"#-> {get_current_date()['date']} - Threads available routine was successfully executed.",
-            f"#--> OUTPUT: \033[92m{cpu_count()} threads\033[0m"
-            f" are available on this machine."
+            f"#--> OUTPUT: \033[92m{cpu_count()} threads"
+            f" are available on this machine.\033[0m",
+            ""
         )
 
     except KeyError as err:
         return f"ERROR - threads_available_routine: {err}"
 
+def topics_cash_counter_routine():
+    try:
+        return (
+            f"#-> {get_current_date()['date']} - Topics cash counter routine was successfully executed.",
+            f"#--> OUTPUT: \033[92mthere are actually {len(APP_CONFIG.GLOBAL['topics_cash'].keys())} topics in the cash.\033[0m",
+            ""
+        )
+
+    except KeyError as err:
+        return f"ERROR - topics_cash_counter_routine: {err}"
 
 def summary_routine(*args):
     def _ansi_length(s):
@@ -112,7 +149,10 @@ def supervisor(app, db):
                     history_size_regulator_routine(db),
                     threads_counter_routine(last_routine, threads_count),
                     threads_timer_routine(work_duration, threads_count),
-                    threads_available_routine()
+                    requests_counter_routine(last_routine),
+                    requests_exceeded_routine(),
+                    topics_cash_counter_routine(),
+                    threads_available_routine(),
                 )
 
                 last_routine = get_current_date()["date_timespamp"]

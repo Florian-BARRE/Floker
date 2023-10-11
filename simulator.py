@@ -27,9 +27,9 @@ if __name__ == "__main__":
         for task in range(10):
             Thread(target=write_request, args=("simulator", salvo)).start()
             Thread(target=write_request, args=("simulator", task)).start()
-            #Thread(target=view_request, args=("topics")).start()
-            #Thread(target=view_request, args=("history", salvo)).start()
-            #Thread(target=view_request, args=("topics", "simulator")).start()
+            # Thread(target=view_request, args=("topics")).start()
+            # Thread(target=view_request, args=("history", salvo)).start()
+            # Thread(target=view_request, args=("topics", "simulator")).start()
 
             print(f'salvo: {salvo} / task: {task}')
 

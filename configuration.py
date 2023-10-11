@@ -27,7 +27,9 @@ class Config:
         "supervisor_routine_wait": 5,
         "current_period_threads_opened": 0,
         "current_total_execution_duration_of_threads": 0,
-        "topics_cash": {}
+        "topics_cash": {},
+        "requests_counter": 0,
+        "dynamic_requests_counter": 0
     }
     CODE_ERROR = {
         "successfully_request": 200,
