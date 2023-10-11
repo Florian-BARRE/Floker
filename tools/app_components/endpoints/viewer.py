@@ -3,7 +3,8 @@ from flask import jsonify, request
 from configuration import APP_CONFIG
 from tools.sql import db, app
 from tools.sql.table import Topics, History
-from tools.sql_actions import add_topic
+
+from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import get_current_date, increment_threads_count
 
 
@@ -81,11 +82,10 @@ def table_viewer():
 
 
 def extract_history_table_from_topic(topic, start, end):
-    # Check is the topic exist in the general topics table
-    general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+    topic_check_result = check_topic_existence(db.session, topic)
 
     # If it exists
-    if len(general_topic_result) == 1:
+    if topic_check_result[0] == 1:
         # 2 cases:
         # from 0 to end_history_capture
         # from start_history_capture to end_history_capture
@@ -103,9 +103,7 @@ def extract_history_table_from_topic(topic, start, end):
             return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
                 getattr(History, "timestamp").desc()).all()
 
-    elif len(general_topic_result) == 0:
-        # Add the new topic
-        add_topic(db.session, topic)
+    elif topic_check_result[0] == 0:
         return extract_history_table_from_topic(topic, start, end)
 
     else:

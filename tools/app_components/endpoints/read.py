@@ -27,31 +27,31 @@ def read_topic():
 def read_task(topic, parse_arg=None, previous_state_index=None):
     try:
         topic_check_result = check_topic_existence(db.session, topic)
+        history_size = topic_check_result[1]
 
         # If it exists
         if topic_check_result[0] == 1:
-            # Check in history the topic's state
-            history_topic_result = db.session.query(History).filter(
-                getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).all()
-
-            # Get topic's history size in general topics
-            history_size = topic_check_result[1]
 
             # Take the state, last state or state index which was asked
             if previous_state_index is None:
-                state = history_topic_result[0].state
-                timestamp = history_topic_result[0].timestamp
-                date = history_topic_result[0].date
-
-            elif int(previous_state_index) >= len(history_topic_result):
-                state = history_topic_result[-1].state
-                timestamp = history_topic_result[-1].timestamp
-                date = history_topic_result[-1].date
-
+                index = 0
             else:
-                state = history_topic_result[int(previous_state_index)].state
-                timestamp = history_topic_result[int(previous_state_index)].timestamp
-                date = history_topic_result[int(previous_state_index)].date
+                try:
+                    previous_state_index = int(previous_state_index)
+                except KeyError as err:
+                    print(f"ERROR - parse previous_state_index: {err}")
+                    return jsonify(status="topic's reader doesn't work, an error occured"), APP_CONFIG.CODE_ERROR[
+                        "crash"]
+
+                nb_rows = db.session.query(History).filter(getattr(History, "topic") == topic).count()
+                index = min(previous_state_index, history_size, nb_rows-1)
+
+            # Get the state
+            row = db.session.query(History).filter(getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).offset(index).limit(index+1)[0]
+            state = row.state
+            timestamp = row.timestamp
+            date = row.date
+
             if state is None:
                 state = "null"
 

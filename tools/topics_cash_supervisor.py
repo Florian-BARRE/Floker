@@ -4,7 +4,7 @@ from tools.sql.table import Topics
 from tools.sql_actions import add_topic
 
 
-def check_topic_existence(session, topic, add_if_not_exist=True, default_state=None):
+def check_topic_existence(session, topic, add_if_not_exist=True, default_state=None, default_history_size=None):
     if APP_CONFIG.ENABLE_TOPICS_CASH:
         # Check in cash if topic is available
         if APP_CONFIG.GLOBAL["topics_cash"].get(topic, None) is None:
@@ -18,6 +18,10 @@ def check_topic_existence(session, topic, add_if_not_exist=True, default_state=N
             elif len(topics_table_result) == 0 and add_if_not_exist:
                 if default_state is not None:
                     add_topic(session, topic, default_value=default_state)
+                elif default_history_size is not None:
+                    add_topic(session, topic, default_history_size=default_history_size)
+                elif default_state is not None and default_history_size is not None:
+                    add_topic(session, topic, default_value=default_state, default_history_size=default_history_size)
                 else:
                     add_topic(session, topic)
                 output = (1, add_topic_in_cash(topic=topic, size=APP_CONFIG.GLOBAL["default_history_size"]))
@@ -38,7 +42,14 @@ def check_topic_existence(session, topic, add_if_not_exist=True, default_state=N
 
         # If it doesn't exist
         elif len(topics_table_result) == 0 and add_if_not_exist:
-            add_topic(session, topic)
+            if default_state is not None:
+                add_topic(session, topic, default_value=default_state)
+            elif default_history_size is not None:
+                add_topic(session, topic, default_history_size=default_history_size)
+            elif default_state is not None and default_history_size is not None:
+                add_topic(session, topic, default_value=default_state, default_history_size=default_history_size)
+            else:
+                add_topic(session, topic)
             output = (1, topics_table_result[0].history_size)
 
         # If there is more than 1 topic -> Error

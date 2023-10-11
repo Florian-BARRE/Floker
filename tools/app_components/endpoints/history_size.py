@@ -5,6 +5,7 @@ from tools.sql import db, app
 from tools.sql.table import Topics
 from tools.sql_actions import add_topic
 
+from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import increment_threads_count
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'history_size', methods=['GET'])
@@ -25,19 +26,13 @@ def change_history_size():
     topic = topic.replace("$", "/")
 
     try:
-        # Check is the topic exist in the general topics table
-        general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+        topic_check_result = check_topic_existence(db.session, topic, add_if_not_exist=True, default_history_size=size)
 
         # If it exists
-        if len(general_topic_result) == 1:
+        if topic_check_result[0] == 1:
             # Change history size
-            general_topic_result[0].history_size = size
+            db.session.query(Topics).filter(getattr(Topics, "topic") == topic).first().history_size = size
             db.session.commit()
-
-        # If doesn t exist
-        elif len(general_topic_result) == 0:
-            # Add the new topic
-            add_topic(db.session, topic, default_history_size=size)
 
         # If there is to many topics create an error
         else:

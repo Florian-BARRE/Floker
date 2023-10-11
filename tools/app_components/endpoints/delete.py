@@ -4,7 +4,9 @@ from configuration import APP_CONFIG
 from tools.sql import db, app
 from tools.sql.table import Topics, History
 
+from tools.topics_cash_supervisor import check_topic_existence, delete_topic_in_cash
 from tools.utilities import increment_threads_count
+
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'delete', methods=['GET'])
 @increment_threads_count
@@ -20,26 +22,26 @@ def delete_topic():
     topic = topic.replace("$", "/")
 
     try:
-        # Check is the topic exist in the general topics table
-        general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+
+        topic_check_result = check_topic_existence(db.session, topic)
 
         # If it exists
-        if len(general_topic_result) == 1:
-            # Check in history the topic's state
-            history_topic_result = db.session.query(History).filter(
-                getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).all()
-
-            # Delete all rows
-            for row in history_topic_result:
-                db.session.delete(row)
+        if topic_check_result[0] == 1:
+            # Delete history topic rows
+            to_delete = db.session.query(History).filter(getattr(History, "topic") == topic)
+            to_delete.delete(synchronize_session='fetch')
 
             # Delete topic row
-            db.session.delete(general_topic_result[0])
+            to_delete = db.session.query(Topics).filter(getattr(Topics, "topic") == topic)
+            to_delete.delete(synchronize_session='fetch')
 
             db.session.commit()
 
+            # Delete the topic from the cash
+            delete_topic_in_cash(topic)
+
         # If doesn t exist
-        elif len(general_topic_result) == 0:
+        elif topic_check_result[0] == 0:
             return jsonify(status="topic doesn't exist"), APP_CONFIG.CODE_ERROR["successfully_request"]
 
         # If there is to many topics create an error
