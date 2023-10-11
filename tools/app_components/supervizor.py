@@ -77,6 +77,7 @@ def requests_counter_routine(last_call):
     except KeyError as err:
         return f"ERROR - requests_counter_routine: {err}"
 
+
 def requests_exceeded_routine():
     try:
         return (
@@ -88,6 +89,7 @@ def requests_exceeded_routine():
 
     except KeyError as err:
         return f"ERROR - requests_exceeded_routine: {err}"
+
 
 def threads_available_routine():
     try:
@@ -101,6 +103,7 @@ def threads_available_routine():
     except KeyError as err:
         return f"ERROR - threads_available_routine: {err}"
 
+
 def topics_cash_counter_routine():
     try:
         return (
@@ -111,6 +114,7 @@ def topics_cash_counter_routine():
 
     except KeyError as err:
         return f"ERROR - topics_cash_counter_routine: {err}"
+
 
 def summary_routine(*args):
     def _ansi_length(s):

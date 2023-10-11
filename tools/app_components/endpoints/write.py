@@ -2,9 +2,9 @@ from flask import jsonify, request
 
 from configuration import APP_CONFIG
 from tools.sql import db, app
-from tools.sql.table import Topics, History
-from tools.sql_actions import add_topic
+from tools.sql.table import History
 
+from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import get_current_date, increment_threads_count
 
 
@@ -29,11 +29,10 @@ def write_task(topic, state):
     msg = "topic's writer doesn't work, an error occured"
 
     try:
-        # Check is the topic exist in the general topics table
-        general_topic_result = db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+        topic_check_result = check_topic_existence(db.session, topic, add_if_not_exist=True, default_state=state)
 
         # If it exists
-        if len(general_topic_result) == 1:
+        if topic_check_result[0] == 1:
             # Check in history the state
             date = get_current_date()
             db.session.add(
@@ -46,13 +45,8 @@ def write_task(topic, state):
             )
             db.session.commit()
 
-        # If doesn t exist
-        elif len(general_topic_result) == 0:
-            # Add the new topic
-            add_topic(db.session, topic, default_value=state)
-
         # If there is to many topics create an error
-        else:
+        elif topic_check_result[0] > 1:
             print(f"To many {topic}, what is the matter ?")
 
         msg = "topic's writer works successfully"
