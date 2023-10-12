@@ -32,7 +32,7 @@ def write_task(topic, state):
         topic_check_result = check_topic_existence(db.session, topic, add_if_not_exist=True, default_state=state)
 
         # If it exists
-        if topic_check_result[0] == 1:
+        if topic_check_result["exist"]:
             # Check in history the state
             date = get_current_date()
             db.session.add(
@@ -44,10 +44,6 @@ def write_task(topic, state):
                 )
             )
             db.session.commit()
-
-        # If there is to many topics create an error
-        elif topic_check_result[0] > 1:
-            print(f"To many {topic}, what is the matter ?")
 
         msg = "topic's writer works successfully"
 

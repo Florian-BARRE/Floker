@@ -24,7 +24,7 @@ def read_request(topic):
 
 if __name__ == "__main__":
     for salvo in range(1000):
-        for task in range(10):
+        for task in range(100):
             Thread(target=write_request, args=("simulator", salvo)).start()
             Thread(target=write_request, args=("simulator", task)).start()
             # Thread(target=view_request, args=("topics")).start()

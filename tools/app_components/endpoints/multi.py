@@ -65,6 +65,9 @@ def multi_task():
             elif type.lower() == "viewer":
                 # TODO: muti request for viewer
                 pass
+            elif type.lower() == "history_length":
+                # TODO: history_length request for viewer
+                pass
 
             # Add response to array
             http_code = APP_CONFIG.CODE_ERROR["crash"]

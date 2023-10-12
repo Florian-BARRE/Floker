@@ -27,11 +27,10 @@ def read_topic():
 def read_task(topic, parse_arg=None, previous_state_index=None):
     try:
         topic_check_result = check_topic_existence(db.session, topic)
-        history_size = topic_check_result[1]
+        history_size = topic_check_result["history_size"]
 
         # If it exists
-        if topic_check_result[0] == 1:
-
+        if topic_check_result["exist"]:
             # Take the state, last state or state index which was asked
             if previous_state_index is None:
                 index = 0
@@ -54,15 +53,6 @@ def read_task(topic, parse_arg=None, previous_state_index=None):
 
             if state is None:
                 state = "null"
-
-        elif topic_check_result[0] == 0:
-            state = "null"
-            timestamp = get_current_date()["date_timespamp"]
-            date = get_current_date()["date"]
-            history_size = APP_CONFIG.GLOBAL["default_history_size"]
-
-        else:
-            print(f"To many {topic}, what is the matter ?")
 
         if parse_arg is not None:
             return \

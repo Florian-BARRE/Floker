@@ -3,10 +3,10 @@ from flask import jsonify, request
 from configuration import APP_CONFIG
 from tools.sql import db, app
 from tools.sql.table import Topics
-from tools.sql_actions import add_topic
 
 from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import increment_threads_count
+
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'history_size', methods=['GET'])
 @increment_threads_count
@@ -29,17 +29,13 @@ def change_history_size():
         topic_check_result = check_topic_existence(db.session, topic, add_if_not_exist=True, default_history_size=size)
 
         # If it exists
-        if topic_check_result[0] == 1:
+        if topic_check_result["exist"]:
             # Change history size
             db.session.query(Topics).filter(getattr(Topics, "topic") == topic).first().history_size = size
             db.session.commit()
 
-        # If there is to many topics create an error
-        else:
-            print(f"To many {topic}, what is the matter ?")
-
         return jsonify(status="history size changer work successfully"), APP_CONFIG.CODE_ERROR["successfully_request"]
 
     except KeyError as err:
-        print(f"ERROR - read_topic: {err}")
+        print(f"ERROR - change history size: {err}")
         return jsonify(status="History size changer doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]

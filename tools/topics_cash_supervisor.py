@@ -5,60 +5,38 @@ from tools.sql_actions import add_topic
 
 
 def check_topic_existence(session, topic, add_if_not_exist=True, default_state=None, default_history_size=None):
-    if APP_CONFIG.ENABLE_TOPICS_CASH:
-        # Check in cash if topic is available
-        if APP_CONFIG.GLOBAL["topics_cash"].get(topic, None) is None:
-            topics_table_result = session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+    # Get topic
+    topic_result = None
 
-            # If it exists
-            if len(topics_table_result) == 1:
-                output = (1, add_topic_in_cash(rows=topics_table_result))
-
-            # If it doesn't exist
-            elif len(topics_table_result) == 0 and add_if_not_exist:
-                if default_state is not None:
-                    add_topic(session, topic, default_value=default_state)
-                elif default_history_size is not None:
-                    add_topic(session, topic, default_history_size=default_history_size)
-                elif default_state is not None and default_history_size is not None:
-                    add_topic(session, topic, default_value=default_state, default_history_size=default_history_size)
-                else:
-                    add_topic(session, topic)
-                output = (1, add_topic_in_cash(topic=topic, size=APP_CONFIG.GLOBAL["default_history_size"]))
-
-            # If there is more than 1 topic -> Error
-            else:
-                print(f"To many {topic}, what is the matter ?")
-                output = 0
-        else:
-            output = (1, APP_CONFIG.GLOBAL["topics_cash"].get(topic))
-
+    if APP_CONFIG.ENABLE_TOPICS_CASH and APP_CONFIG.GLOBAL["topics_cash"].get(topic, None) is not None:
+        topic_result = {"exist": True, "history_size": APP_CONFIG.GLOBAL["topics_cash"].get(topic)}
     else:
         topics_table_result = session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
-
-        # If it exists
         if len(topics_table_result) == 1:
-            output = (1, topics_table_result[0].history_size)
+            topic_result = {"exist": True, "history_size": topics_table_result[0].history_size}
 
-        # If it doesn't exist
-        elif len(topics_table_result) == 0 and add_if_not_exist:
-            if default_state is not None:
-                add_topic(session, topic, default_value=default_state)
-            elif default_history_size is not None:
-                add_topic(session, topic, default_history_size=default_history_size)
-            elif default_state is not None and default_history_size is not None:
-                add_topic(session, topic, default_value=default_state, default_history_size=default_history_size)
-            else:
-                add_topic(session, topic)
-            output = (1, topics_table_result[0].history_size)
+            if APP_CONFIG.ENABLE_TOPICS_CASH:
+                add_topic_in_cash(rows=topics_table_result)
 
-        # If there is more than 1 topic -> Error
-        else:
+        elif len(topics_table_result) > 1:
             print(f"To many {topic}, what is the matter ?")
-            output = 0
+            topic_result = {"exist": False, "history_size": -1}
 
-    return output
+    # If no topic found
+    if topic_result is None:
+        if add_if_not_exist:
+            # Add missing topic in the topics table
+            call_add_topic(session, topic, default_value=default_state, default_history_size=default_history_size)
+            topics_table_result = session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+            # Add missing topic in cash
+            if APP_CONFIG.ENABLE_TOPICS_CASH:
+                add_topic_in_cash(topics_table_result)
 
+            topic_result = {"exist": True, "history_size": topics_table_result[0].history_size}
+        else:
+            topic_result = {"exist": False, "history_size": -1}
+
+    return topic_result
 
 def add_topic_in_cash(rows=None, topic=None, size=None):
     if rows is None:
@@ -68,6 +46,18 @@ def add_topic_in_cash(rows=None, topic=None, size=None):
         APP_CONFIG.GLOBAL["topics_cash"][rows[0].topic] = rows[0].history_size
         return rows[0].history_size
 
+
 def delete_topic_in_cash(topic):
     if APP_CONFIG.ENABLE_TOPICS_CASH:
         APP_CONFIG.GLOBAL["topics_cash"].pop(topic, None)
+
+
+def call_add_topic(session, topic, default_value=None, default_history_size=None):
+    if default_value is None and default_history_size is None:
+        add_topic(session, topic)
+    elif default_value is not None and default_history_size is None:
+        add_topic(session, topic, default_value=default_value)
+    elif default_value is None and default_history_size is not None:
+        add_topic(session, topic, default_history_size=default_history_size)
+    else:
+        add_topic(session, topic, default_value=default_value, default_history_size=default_history_size)

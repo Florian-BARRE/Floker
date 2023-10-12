@@ -37,7 +37,6 @@ def table_viewer():
             print(f"ERROR - parse end_history_capture: {err}")
             return jsonify(status="topic's viewer doesn't work, an error occured"), APP_CONFIG.CODE_ERROR["crash"]
 
-
     if table is None:
         return jsonify(status="Error table parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 

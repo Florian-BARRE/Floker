@@ -22,11 +22,10 @@ def delete_topic():
     topic = topic.replace("$", "/")
 
     try:
-
-        topic_check_result = check_topic_existence(db.session, topic)
+        topic_check_result = check_topic_existence(db.session, topic, add_if_not_exist=False)
 
         # If it exists
-        if topic_check_result[0] == 1:
+        if topic_check_result["exist"]:
             # Delete history topic rows
             to_delete = db.session.query(History).filter(getattr(History, "topic") == topic)
             to_delete.delete(synchronize_session='fetch')
@@ -41,12 +40,8 @@ def delete_topic():
             delete_topic_in_cash(topic)
 
         # If doesn t exist
-        elif topic_check_result[0] == 0:
-            return jsonify(status="topic doesn't exist"), APP_CONFIG.CODE_ERROR["successfully_request"]
-
-        # If there is to many topics create an error
         else:
-            print(f"To many {topic}, what is the matter ?")
+            return jsonify(status="topic doesn't exist"), APP_CONFIG.CODE_ERROR["successfully_request"]
 
         return jsonify(status="topic's delete work successfully"), APP_CONFIG.CODE_ERROR["successfully_request"]
 
