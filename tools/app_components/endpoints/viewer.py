@@ -84,7 +84,7 @@ def extract_history_table_from_topic(topic, start, end):
     topic_check_result = check_topic_existence(db.session, topic)
 
     # If it exists
-    if topic_check_result[0] == 1:
+    if topic_check_result["exist"]:
         # 2 cases:
         # from 0 to end_history_capture
         # from start_history_capture to end_history_capture
@@ -101,14 +101,6 @@ def extract_history_table_from_topic(topic, start, end):
         else:
             return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
                 getattr(History, "timestamp").desc()).all()
-
-    elif topic_check_result[0] == 0:
-        return extract_history_table_from_topic(topic, start, end)
-
-    else:
-        print(f"To many {topic}, what is the matter ?")
-        return []
-
 
 def extract_history_table():
     return db.session.query(History).order_by(getattr(History, "timestamp").desc()).all()
