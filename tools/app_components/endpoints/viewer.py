@@ -102,6 +102,7 @@ def extract_history_table_from_topic(topic, start, end):
             return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
                 getattr(History, "timestamp").desc()).all()
 
+
 def extract_history_table():
     return db.session.query(History).order_by(getattr(History, "timestamp").desc()).all()
 

@@ -43,10 +43,11 @@ def read_task(topic, parse_arg=None, previous_state_index=None):
                         "crash"]
 
                 nb_rows = db.session.query(History).filter(getattr(History, "topic") == topic).count()
-                index = min(previous_state_index, history_size, nb_rows-1)
+                index = min(previous_state_index, history_size, nb_rows - 1)
 
             # Get the state
-            row = db.session.query(History).filter(getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).offset(index).limit(index+1)[0]
+            row = db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
+                getattr(History, "timestamp").desc()).offset(index).limit(index + 1)[0]
             state = row.state
             timestamp = row.timestamp
             date = row.date
