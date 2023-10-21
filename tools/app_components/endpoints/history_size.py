@@ -20,8 +20,8 @@ def change_history_size():
     if topic is None:
         return jsonify(status="Error topic parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 
-    elif size is None or size == "" or int(size) < 0:
-        return jsonify(status="Error new history size is incorrect"), APP_CONFIG.CODE_ERROR["missing_parameter"]
+    elif size is None or size == "" or int(size) < -1 or int(size) == 0:  # size -1 == unlimited
+        return jsonify(status="Error new history size or int(size) < -1is incorrect"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 
     topic = topic.replace("$", "/")
 

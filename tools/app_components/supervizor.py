@@ -13,14 +13,17 @@ def history_size_regulator_routine(db):
         cpt_deleted_rows = 0
 
         for topic in all_topics:
-            items_to_delete = db.session.query(History.id).filter(
-                getattr(History, "topic") == topic.topic).order_by(getattr(History, "timestamp").desc()).offset(
-                topic.history_size).subquery()
-            cpt_deleted_rows += db.session.query(items_to_delete).count()
-            db.session.query(History).filter(History.id.in_(select(items_to_delete))).delete(
-                synchronize_session='fetch')
+            if topic.history_size != -1:
+                current_history_size = db.session.query(getattr(History, "topic") == topic.topic).count()
 
-            db.session.commit()
+                if current_history_size > topic.history_size:
+                    cpt_deleted_rows = current_history_size - topic.history_size
+                    items_to_delete = db.session.query(History.id).filter(
+                        getattr(History, "topic") == topic.topic).order_by(getattr(History, "timestamp").desc()).offset(
+                        topic.history_size).subquery()
+                    db.session.query(History).filter(History.id.in_(select(items_to_delete))).delete(
+                        synchronize_session='fetch')
+                    db.session.commit()
 
         return (
             f"#-> {get_current_date()['date']} - History size regulator routine was successfully executed.",

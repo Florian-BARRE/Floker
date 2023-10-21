@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import wraps
 from flask import g
 
@@ -7,7 +8,6 @@ from configuration import APP_CONFIG
 
 
 def get_current_date():
-    from datetime import datetime
     now = datetime.now()
     timestamp = datetime.timestamp(now)
     return {
