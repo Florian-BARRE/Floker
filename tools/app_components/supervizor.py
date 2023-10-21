@@ -14,7 +14,7 @@ def history_size_regulator_routine(db):
 
         for topic in all_topics:
             if topic.history_size != -1:
-                current_history_size = db.session.query(History).filter(getattr(History, "topic") == topic).count()
+                current_history_size = db.session.query(History).filter(getattr(History, "topic") == topic.topic).count()
 
                 if current_history_size > topic.history_size:
                     cpt_deleted_rows = current_history_size - topic.history_size
