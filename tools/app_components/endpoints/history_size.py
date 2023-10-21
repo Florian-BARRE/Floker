@@ -4,7 +4,7 @@ from configuration import APP_CONFIG
 from tools.sql import db, app
 from tools.sql.table import Topics
 
-from tools.topics_cash_supervisor import check_topic_existence
+from tools.topics_cash_supervisor import check_topic_existence, update_topic_in_cash
 from tools.utilities import increment_threads_count
 
 
@@ -21,7 +21,7 @@ def change_history_size():
         return jsonify(status="Error topic parameter is missing"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 
     elif size is None or size == "" or int(size) < -1 or int(size) == 0:  # size -1 == unlimited
-        return jsonify(status="Error new history size or int(size) < -1is incorrect"), APP_CONFIG.CODE_ERROR["missing_parameter"]
+        return jsonify(status="Error new history size or int(size) < -1 is incorrect"), APP_CONFIG.CODE_ERROR["missing_parameter"]
 
     topic = topic.replace("$", "/")
 
@@ -33,6 +33,8 @@ def change_history_size():
             # Change history size
             db.session.query(Topics).filter(getattr(Topics, "topic") == topic).first().history_size = size
             db.session.commit()
+            # Change in topics cash
+            update_topic_in_cash(topic, size)
 
         return jsonify(status="history size changer work successfully"), APP_CONFIG.CODE_ERROR["successfully_request"]
 

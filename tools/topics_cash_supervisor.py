@@ -46,6 +46,9 @@ def add_topic_in_cash(rows=None, topic=None, size=None):
         APP_CONFIG.GLOBAL["topics_cash"][rows[0].topic] = rows[0].history_size
         return rows[0].history_size
 
+def update_topic_in_cash(topic, history_size):
+    if APP_CONFIG.ENABLE_TOPICS_CASH:
+        APP_CONFIG.GLOBAL["topics_cash"][topic] = history_size
 
 def delete_topic_in_cash(topic):
     if APP_CONFIG.ENABLE_TOPICS_CASH:
