@@ -59,7 +59,10 @@ def table_viewer():
 
         # extract topics table
         elif table.lower() == "topics":
-            extraction = extract_topics_table()
+            if topic is not None:
+                topic = topic.replace("$", "/")
+
+            extraction = extract_topics_table(topic)
             json_extraction = sql_to_json(extraction, Topics)
 
         # Prepare the final json
@@ -107,8 +110,11 @@ def extract_history_table():
     return db.session.query(History).order_by(getattr(History, "timestamp").desc()).all()
 
 
-def extract_topics_table():
-    return db.session.query(Topics).all()
+def extract_topics_table(topic=None):
+    if topic is None:
+        return db.session.query(Topics).all()
+    else:
+        return db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
 
 
 def sql_to_json(extraction: object, table: object) -> object:
