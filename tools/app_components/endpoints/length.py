@@ -6,7 +6,7 @@ from tools.sql.table import History
 
 from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import increment_threads_count
-
+from tools.history_size_cash_supervisor import get_history_size
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'history_length', methods=['GET'])
 @increment_threads_count
@@ -27,7 +27,7 @@ def get_topic_history_length():
         # If it exists
         if topic_check_result["exist"]:
             # Get the length of topic's history
-            length = db.session.query(History).filter(getattr(History, "topic") == topic).count()
+            length = get_history_size(db.session, topic, add_if_not_exist=False)
             return jsonify(status="Topic length getter works successfully", length=length), APP_CONFIG.CODE_ERROR[
                 "successfully_request"]
 

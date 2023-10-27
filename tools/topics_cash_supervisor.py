@@ -15,7 +15,7 @@ def check_topic_existence(session, topic, add_if_not_exist=True, default_state=N
         if len(topics_table_result) == 1:
             topic_result = {"exist": True, "history_size": topics_table_result[0].history_size}
 
-            if APP_CONFIG.ENABLE_TOPICS_CASH:
+            if APP_CONFIG.ENABLE_TOPICS_CASH and add_if_not_exist:
                 add_topic_in_cash(rows=topics_table_result)
 
         elif len(topics_table_result) > 1:

@@ -6,7 +6,7 @@ from tools.sql.table import Topics, History
 
 from tools.topics_cash_supervisor import check_topic_existence, delete_topic_in_cash
 from tools.utilities import increment_threads_count
-
+from tools.history_size_cash_supervisor import delete_history_size_in_cash
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'delete', methods=['GET'])
 @increment_threads_count
@@ -38,8 +38,9 @@ def delete_topic():
 
             # Delete the topic from the cash
             delete_topic_in_cash(topic)
+            delete_history_size_in_cash(topic)
 
-        # If doesn t exist
+        # If it doesn't exist
         else:
             return jsonify(status="topic doesn't exist"), APP_CONFIG.CODE_ERROR["successfully_request"]
 

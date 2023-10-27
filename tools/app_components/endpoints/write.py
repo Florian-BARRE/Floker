@@ -6,7 +6,7 @@ from tools.sql.table import History
 
 from tools.topics_cash_supervisor import check_topic_existence
 from tools.utilities import get_current_date, increment_threads_count
-
+from tools.history_size_cash_supervisor import update_history_size_cash
 
 @app.route(APP_CONFIG.GLOBAL["API_root"] + 'write', methods=['GET'])
 @increment_threads_count
@@ -44,6 +44,7 @@ def write_task(topic, state):
                 )
             )
             db.session.commit()
+            update_history_size_cash(db.session, topic, rows_to_add=1, add_to_cash_if_not_exist=True)
 
         msg = "topic's writer works successfully"
 

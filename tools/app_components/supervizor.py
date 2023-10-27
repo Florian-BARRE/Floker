@@ -6,24 +6,48 @@ from configuration import APP_CONFIG
 from tools.sql.table import Topics, History
 from tools.utilities import get_current_date
 
+from tools.history_size_cash_supervisor import get_history_size
+from tools.topics_cash_supervisor import check_topic_existence
+
 
 def history_size_regulator_routine(db):
     try:
-        all_topics = db.session.query(Topics).filter(getattr(Topics, "id") >= 0).all()
+        # Get all topics to supervise. Topics source: from topics cash / from MySQL
+        # If we use Topic cash only topics in, have changed => just supervise them
+        # For the first supervisor running all topics are regulated
+        if not APP_CONFIG.ENABLE_TOPICS_CASH or not APP_CONFIG.GLOBAL["supervisor_running"]:
+            all_topics_sql = db.session.query(Topics).all()
+            all_topics = dict()
+            for row in all_topics_sql:
+                all_topics[row.topic] = {
+                    "history_size": row.history_size,
+                    "current_history_size": get_history_size(session=db.session, topic=row.topic,
+                                                             add_if_not_exist=False)
+                }
+
+        else:
+            all_topics = dict()
+            a = APP_CONFIG.GLOBAL["history_size_cash"]
+            for topic, current_history_size in APP_CONFIG.GLOBAL["history_size_cash"].items():
+                all_topics[topic] = {
+                    "history_size": check_topic_existence(db.session, topic, add_if_not_exist=True)["history_size"],
+                    "current_history_size": current_history_size
+                }
+
         cpt_deleted_rows = 0
-
         for topic in all_topics:
-            if topic.history_size != -1:
-                current_history_size = db.session.query(History).filter(getattr(History, "topic") == topic.topic).count()
+            history_size = all_topics[topic].get("history_size", -1)
+            current_history_size = all_topics[topic].get("current_history_size", None)
 
-                if current_history_size > topic.history_size:
-                    cpt_deleted_rows = current_history_size - topic.history_size
-                    items_to_delete = db.session.query(History.id).filter(
-                        getattr(History, "topic") == topic.topic).order_by(getattr(History, "timestamp").desc()).offset(
-                        topic.history_size).subquery()
-                    db.session.query(History).filter(History.id.in_(select(items_to_delete))).delete(
-                        synchronize_session='fetch')
-                    db.session.commit()
+            if history_size != -1 and current_history_size is not None and current_history_size > history_size:
+                cpt_deleted_rows += current_history_size - history_size
+                items_to_delete = db.session.query(History.id).filter(
+                    getattr(History, "topic") == topic).order_by(getattr(History, "timestamp").desc()).offset(
+                    history_size).subquery()
+                db.session.query(History).filter(History.id.in_(select(items_to_delete))).delete(
+                    synchronize_session='fetch')
+                db.session.commit()
+                APP_CONFIG.GLOBAL["history_size_cash"][topic] = history_size
 
         return (
             f"#-> {get_current_date()['date']} - History size regulator routine was successfully executed.",
@@ -119,6 +143,18 @@ def topics_cash_counter_routine():
         return f"ERROR - topics_cash_counter_routine: {err}"
 
 
+def history_size_cash_counter_routine():
+    try:
+        return (
+            f"#-> {get_current_date()['date']} - History size cash counter routine was successfully executed.",
+            f"#--> OUTPUT: \033[92mthere are actually {len(APP_CONFIG.GLOBAL['history_size_cash'].keys())} topics in the cash.\033[0m",
+            ""
+        )
+
+    except KeyError as err:
+        return f"ERROR - history_size_cash_counter_routine: {err}"
+
+
 def summary_routine(*args):
     def _ansi_length(s):
         return len(re.sub(r'\033\[[0-9;]*[mK]', '', str(s)))
@@ -159,7 +195,9 @@ def supervisor(app, db):
                     requests_counter_routine(last_routine),
                     requests_exceeded_routine(),
                     topics_cash_counter_routine(),
+                    history_size_cash_counter_routine(),
                     threads_available_routine(),
                 )
 
                 last_routine = get_current_date()["date_timespamp"]
+                APP_CONFIG.GLOBAL["supervisor_running"] = True

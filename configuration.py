@@ -28,8 +28,10 @@ class Config:
         "current_period_threads_opened": 0,
         "current_total_execution_duration_of_threads": 0,
         "topics_cash": {},
+        "history_size_cash": {},
         "requests_counter": 0,
-        "dynamic_requests_counter": 0
+        "dynamic_requests_counter": 0,
+        "supervisor_running": False
     }
     CODE_ERROR = {
         "successfully_request": 200,
@@ -41,6 +43,7 @@ class Config:
     # Run Mode
     SERVER_MODE = "cherrypy_server"  # debug_server | cherrypy_server
     ENABLE_TOPICS_CASH = True  # True | False
+    ENABLE_HISTORY_SIZE_CASH = True  # True | False
     DATABASE_MODE = SECRET_CONFIG_STORE["database_mode"]
     TOKEN = SECRET_CONFIG_STORE["token"]
 
