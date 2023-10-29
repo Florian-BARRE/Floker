@@ -53,7 +53,7 @@ def table_viewer():
                     start_history_capture, end_history_capture
                 )
             else:
-                extraction = extract_history_table()
+                extraction = extract_history_table(start_history_capture, end_history_capture)
 
             json_extraction = sql_to_json(extraction, History)
 
@@ -62,7 +62,10 @@ def table_viewer():
             if topic is not None:
                 topic = topic.replace("$", "/")
 
-            extraction = extract_topics_table(topic)
+            extraction = extract_topics_table(
+                start_history_capture, end_history_capture,
+                topic
+            )
             json_extraction = sql_to_json(extraction, Topics)
 
         # Prepare the final json
@@ -100,22 +103,48 @@ def extract_history_table_from_topic(topic, start, end):
         elif start is not None and end is not None:
             return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
                 getattr(History, "timestamp").desc()).offset(start).limit(end).all()
-
         else:
             return db.session.query(History).filter(getattr(History, "topic") == topic).order_by(
                 getattr(History, "timestamp").desc()).all()
 
 
-def extract_history_table():
-    return db.session.query(History).order_by(getattr(History, "timestamp").desc()).all()
+def extract_history_table(start, end):
+    # 2 cases:
+    # from 0 to end_history_capture
+    # from start_history_capture to end_history_capture
 
+    # from 0 to end_history_capture
+    if start is None and end is not None:
+        return db.session.query(History).order_by(
+            getattr(History, "timestamp").desc()).limit(end).all()
+    # from start_history_capture to end_history_capture
+    elif start is not None and end is not None:
+        return db.session.query(History).order_by(
+            getattr(History, "timestamp").desc()).offset(start).limit(end).all()
 
-def extract_topics_table(topic=None):
-    if topic is None:
-        return db.session.query(Topics).all()
     else:
-        return db.session.query(Topics).filter(getattr(Topics, "topic") == topic).all()
+        return db.session.query(History).order_by(
+            getattr(History, "timestamp").desc()).all()
 
+
+def extract_topics_table(start, end, topic=None):
+    if topic is None:
+        base_query = db.session.query(Topics)
+    else:
+        base_query = db.session.query(Topics).filter(getattr(Topics, "topic") == topic)
+
+    # 2 cases:
+    # from 0 to end_history_capture
+    # from start_history_capture to end_history_capture
+
+    # from 0 to end_history_capture
+    if start is None and end is not None:
+        return base_query.limit(end).all()
+    # from start_history_capture to end_history_capture
+    elif start is not None and end is not None:
+        return base_query.offset(start).limit(end).all()
+    else:
+        return base_query.all()
 
 def sql_to_json(extraction: object, table: object) -> object:
     # sourcery skip: dict-comprehension, dict-literal
